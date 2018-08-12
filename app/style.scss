@@ -1,0 +1,24 @@
+div { 
+    display: block; 
+    &.content { 
+       position: relative; 
+    } 
+ } 
+ .red { color: blue; }
+ h1{
+     color:blue;
+ }
+ p{
+     font-family: 'Courier New', Courier, monospace;
+
+     span{
+         color: red;
+     }
+ }
+
+ div{
+     margin: 0;
+ }
+ .name{
+     color: green;
+ }
