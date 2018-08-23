@@ -39,7 +39,7 @@ gulp.task('browserSync', function() {
 gulp.task ('watch',['browserSync','sass'], function(){
     gulp.watch('app/style.scss',['sass'])
     gulp.watch('script.js',['js'])
-    gulp.watch('app/*.html',['html'])
+    gulp.watch('app/*.html',['html']).on('change', browserSync.reload);
 })
 
 
