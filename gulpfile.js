@@ -4,16 +4,17 @@ const sass = require('gulp-sass');
 const concat = require('gulp-concat'); 
 const uglify = require('gulp-uglify');
 const watch = require('gulp-watch');
+const imagemin = require('gulp-imagemin');
 const browserSync = require('browser-sync').create();
 
 gulp.task('sass',function ()  {
-    return gulp.src('app/style.scss')
-    .pipe(sass())
+    return gulp.src('./app/sass/styles.scss')
+    .pipe(sass({
+        outputStyle: 'compressed'
+    }))
     .pipe(cssnano()) 
     .pipe(gulp.dest('dist/css'))
-    .pipe(browserSync.reload({
-        stream: true
-      }))
+    .pipe(browserSync.stream());
 });
 
 gulp.task ('js',function(){
@@ -36,11 +37,18 @@ gulp.task('browserSync', function() {
     .pipe(gulp.dest('dist')); 
 })
 
+gulp.task('assets',()=>{
+    gulp.src(`app/img/*`)
+    .pipe(imagemin())
+    .pipe(gulp.dest(`dist/img/`))
+});
+
 gulp.task ('watch',['browserSync','sass'], function(){
-    gulp.watch('app/style.scss',['sass'])
+    gulp.watch('app/sass/*.scss',['sass'])
     gulp.watch('script.js',['js'])
+    gulp.watch('app/img/*',['assets'])
     gulp.watch('app/*.html',['html']).on('change', browserSync.reload);
 })
 
 
-gulp.task('default',['sass','js','watch','html']);
+gulp.task('default',['sass','js','watch','html','assets']);
