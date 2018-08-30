@@ -1,27 +1,27 @@
-const gulp = require('gulp'); 
-const cssnano = require('gulp-cssnano'); 
-const sass = require('gulp-sass'); 
-const concat = require('gulp-concat'); 
+const gulp = require('gulp');
+const cssnano = require('gulp-cssnano');
+const sass = require('gulp-sass');
+const concat = require('gulp-concat');
 const uglify = require('gulp-uglify');
 const watch = require('gulp-watch');
 const imagemin = require('gulp-imagemin');
 const browserSync = require('browser-sync').create();
 
 gulp.task('sass',function ()  {
-    return gulp.src('./app/sass/styles.scss')
+    return gulp.src('app/sass/style.scss')
     .pipe(sass({
         outputStyle: 'compressed'
     }))
-    .pipe(cssnano()) 
+    .pipe(cssnano())
     .pipe(gulp.dest('dist/css'))
     .pipe(browserSync.stream());
 });
 
 gulp.task ('js',function(){
-        return gulp.src('script.js')
-        .pipe(concat('all.js')) 
-        .pipe(uglify()) 
-        .pipe(gulp.dest('dist')); 
+        return gulp.src('app/script.js')
+        .pipe(concat('all.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest('dist'));
 })
 
 gulp.task('browserSync', function() {
@@ -34,7 +34,7 @@ gulp.task('browserSync', function() {
 
   gulp.task ('html',function(){
     return gulp.src('app/*.html')
-    .pipe(gulp.dest('dist')); 
+    .pipe(gulp.dest('dist'));
 })
 
 gulp.task('assets',()=>{
