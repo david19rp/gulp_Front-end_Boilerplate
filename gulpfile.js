@@ -1,56 +1,110 @@
-const gulp = require('gulp');
-const cssnano = require('gulp-cssnano');
-const sass = require('gulp-sass');
-const concat = require('gulp-concat');
-const uglify = require('gulp-uglify');
-const watch = require('gulp-watch');
-const imagemin = require('gulp-imagemin');
-const browserSync = require('browser-sync').create();
+// variable section
+const {
+    dest,
+    series,
+    src,
+    watch
+} = require('gulp')
+const autoprefixer = require('gulp-autoprefixer')
+const browsersync = require("browser-sync").create()
+const concat = require("gulp-concat")
+const del = require("del")
+const nunjucksRender = require("gulp-nunjucks-render")
+const sass = require('gulp-sass')
+const sourcemaps = require('gulp-sourcemaps')
 
-gulp.task('sass',function ()  {
-    return gulp.src('app/sass/style.scss')
-    .pipe(sass({
-        outputStyle: 'compressed'
-    }))
-    .pipe(cssnano())
-    .pipe(gulp.dest('dist/css'))
-    .pipe(browserSync.stream());
-});
+const dist = "dist/"
+const source = "src/"
 
-gulp.task ('js',function(){
-        return gulp.src('app/script.js')
-        .pipe(concat('all.js'))
-        .pipe(uglify())
-        .pipe(gulp.dest('dist'));
-})
+const css = { in: source + "sass/app.scss",
+    out: dist + "css/",
+    sassOpts: {
+        outputStyle: "compressed",
+        errLogToConsole: true
+    },
+    autoprefixerOpts: {
+        browsers: ['last 2 versions', '> 2%']
+    },
+    watch: source + "sass/**/*"
+}
 
-gulp.task('browserSync', function() {
-    browserSync.init({
-      server: {
-        baseDir: 'dist'
-      },
-    })
-  })
-
-  gulp.task ('html',function(){
-    return gulp.src('app/*.html')
-    .pipe(gulp.dest('dist'));
-})
-
-gulp.task('assets',()=>{
-    gulp.src(`app/img/*`)
-    .pipe(imagemin())
-    .pipe(gulp.dest(`dist/img/`))
-});
-
-gulp.task ('watch',['browserSync','sass'], function(){
-    gulp.watch('app/sass/*.scss',['sass'])
-    gulp.watch('app/script.js',['js'])
-    gulp.watch('app/img/*',['assets'])
-    gulp.watch('app/*.html',['html'])
-    gulp.watch('app/**/*').on('change', browserSync.reload);
-})
+const js = { in: source + "scripts/**/*.js",
+    out: dist + "js/",
+    watch: source + "scripts/**/*"
+}
 
 
-gulp.task('default',['sass','js','watch','html','assets']);
-gulp.task('build',['sass','js','html','assets']);
+const nunjuck = { in: source + "pages/**/*.html",
+    out: dist,
+    path: source + "templates",
+    watch: [source + "pages/**/*.html", source + "templates"]
+}
+
+const syncOpts = {
+    server: {
+        baseDir: dist,
+        index: "index.html"
+    },
+    open: true,
+    notify: true
+}
+
+
+// task section
+
+/*------- Clean Task -------*/
+function clean(cb) {
+    del([dist + "*"])
+    cb()
+}
+/*------- Clean Task -------*/
+
+/*------- Style Task -------*/
+function style(cb) {
+    src(css.in)
+        .pipe(sourcemaps.init())
+        .pipe(sass(css.sassOpts))
+        .pipe(autoprefixer(css.autoprefixerOpts))
+        .pipe(sourcemaps.write('.'))
+        .pipe(dest(css.out))
+    watch(css.watch, series(style, browsersync.reload))
+    cb()
+}
+/*------- Style Task -------*/
+
+
+/*------- Script Task -------*/
+function script(cb) {
+    src(js.in)
+        .pipe(sourcemaps.init())
+        .pipe(concat("app.js"))
+        .pipe(sourcemaps.write("."))
+        .pipe(dest(js.out))
+    watch(js.watch, series(script, browsersync.reload))
+    cb()
+}
+/*------- Script Task -------*/
+
+/*------- HTML Task -------*/
+function html(cb) {
+    src(nunjuck.in)
+        .pipe(
+            nunjucksRender({
+                path: nunjuck.path
+            })
+        )
+        .pipe(dest(nunjuck.out))
+    watch(nunjuck.watch, series(html, browsersync.reload))
+    cb()
+}
+/*------- HTML Task -------*/
+
+/*------- Browser Sync Task -------*/
+function bSync(cb) {
+    browsersync.init(syncOpts)
+    cb()
+}
+/*------- Browser Sync Task -------*/
+
+/*------- Default Task -------*/
+exports.default = series(clean, style, script, html, bSync)
